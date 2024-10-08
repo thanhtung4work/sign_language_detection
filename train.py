@@ -1,9 +1,11 @@
+import argparse
+import os
+
 import pickle
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import numpy as np
-import argparse
 
 def load_data(data_path):
     """Load dataset from a pickle file.
@@ -16,6 +18,8 @@ def load_data(data_path):
     """
     with open(data_path, 'rb') as f:
         data_dict = pickle.load(f)
+    for data in data_dict['data']:
+        print(len(data))
     data = np.asarray(data_dict['data'])
     labels = np.asarray(data_dict['labels'])
     return data, labels
@@ -30,7 +34,7 @@ def train_model(x_train, y_train):
     Returns:
         RandomForestClassifier: The trained model.
     """
-    model = RandomForestClassifier()
+    model = RandomForestClassifier(n_estimators=200)
     model.fit(x_train, y_train)
     return model
 
@@ -56,7 +60,10 @@ def save_model(model, output_file):
         model (RandomForestClassifier): The trained model.
         output_file (str): Path to save the model pickle file.
     """
-    with open(output_file, 'wb') as f:
+    if not os.path.exists("./outputs"):
+        os.mkdir("outputs")
+    output_path = os.path.join("outputs", output_file)
+    with open(output_path, 'wb') as f:
         pickle.dump({'model': model}, f)
 
 def main(data_path, output_file, test_size):
@@ -87,8 +94,8 @@ def main(data_path, output_file, test_size):
 if __name__ == '__main__':
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Train a Random Forest classifier on hand landmark data.")
-    parser.add_argument('--data_path', type=str, default='./data.pickle', help='Path to the input data pickle file.')
-    parser.add_argument('--output_file', type=str, default='model.p', help='Path to save the trained model.')
+    parser.add_argument('--data_path', type=str, default='./outputs/data.pickle', help='Path to the input data pickle file.')
+    parser.add_argument('--output_file', type=str, default='model.pickle', help='Path to save the trained model.')
     parser.add_argument('--test_size', type=float, default=0.2, help='Proportion of data to use for testing (default: 0.2).')
 
     args = parser.parse_args()

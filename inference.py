@@ -1,3 +1,5 @@
+from collections import deque
+
 import pickle
 import cv2
 import mediapipe as mp
@@ -31,7 +33,7 @@ def process_frame(frame, hands, model, labels_dict):
         labels_dict (dict): Dictionary mapping label indices to characters.
 
     Returns:
-        numpy.ndarray: The processed frame with predictions drawn on it.
+        tuple: Processed frame with predictions drawn, and the predicted character.
     """
     data_aux = []
     x_ = []
@@ -72,21 +74,26 @@ def process_frame(frame, hands, model, labels_dict):
 
                 # Draw the rectangle and prediction on the frame
                 cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 0), 4)
-                cv2.putText(frame, predicted_character, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 0, 0), 3, cv2.LINE_AA)
 
-    return frame
+                return frame, predicted_character
+
+    return frame, None
 
 def main():
     """Main function to run the real-time hand gesture recognition."""
-    model_path = './model.pickle'
+    model_path = './outputs/model.pickle'
     model = load_model(model_path)
 
     labels_dict = {0: 'A', 1: 'I', 2: 'U', 3: 'E', 4: 'O'}
-
+    
     cap = cv2.VideoCapture(0)
 
     mp_hands = mp.solutions.hands
     hands = mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.8)
+
+    # To store predictions and smooth the results over multiple frames
+    prediction_history = deque(maxlen=10)  # Store last 10 predictions
+    threshold = 5  # Display prediction if it appears this many times consecutively
 
     while True:
         ret, frame = cap.read()
@@ -94,7 +101,15 @@ def main():
             break
 
         # Process the frame for hand landmarks and predictions
-        processed_frame = process_frame(frame, hands, model, labels_dict)
+        processed_frame, predicted_character = process_frame(frame, hands, model, labels_dict)
+
+        if predicted_character:
+            prediction_history.append(predicted_character)
+            most_common_prediction = max(set(prediction_history), key=prediction_history.count)
+
+            # Display the most common prediction only if it has appeared frequently enough
+            if prediction_history.count(most_common_prediction) >= threshold:
+                cv2.putText(processed_frame, most_common_prediction, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 255, 0), 3, cv2.LINE_AA)
 
         # Display the frame
         cv2.imshow('Hand Gesture Recognition', processed_frame)

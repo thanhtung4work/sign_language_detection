@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hand Gesture Recognition</title>
+</head>
+<body>
+    <h1>Hand Gesture Recognition</h1>
+    <video id="video" width="640" height="480" autoplay></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <div id="prediction"></div>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+        const predictionDiv = document.getElementById('prediction');
+
+        // Access webcam
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then((stream) => {
+                video.srcObject = stream;
+            })
+            .catch((err) => {
+                console.error("Error accessing webcam: ", err);
+            });
+
+        // Capture and send frames to the backend every 100ms
+        setInterval(() => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Convert frame to base64
+            const frame = canvas.toDataURL('image/jpeg');
+
+            // Send the frame to the backend for processing
+            fetch('/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ image: frame })
+            })
+            .then(response => response.json())
+            .then(data => {
+                predictionDiv.innerText = `Prediction: ${data.prediction}`;
+            })
+            .catch((err) => {
+                console.error("Error during prediction: ", err);
+            });
+        }, 100); // Capture and send every 100ms
+    </script>
+</body>
+</html>
