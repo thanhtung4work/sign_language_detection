@@ -43,6 +43,7 @@ def process_frame(frame, hands, model, labels_dict):
     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
     results = hands.process(frame_rgb)
+
     if results.multi_hand_landmarks:
         for hand_landmarks in results.multi_hand_landmarks:
             mp_drawing.draw_landmarks(
@@ -84,7 +85,7 @@ def main():
     model_path = './outputs/model.pickle'
     model = load_model(model_path)
 
-    labels_dict = {0: 'A', 1: 'I', 2: 'U', 3: 'E', 4: 'O'}
+    labels_dict = {0: 'A', 1: 'I', 2: 'U', 3: 'E', 4: 'O', 5: 'KA', 6: 'KI', 7: 'KU', 8: 'KE', 9: 'KO'}
     
     cap = cv2.VideoCapture(0)
 
@@ -92,8 +93,10 @@ def main():
     hands = mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.8)
 
     # To store predictions and smooth the results over multiple frames
-    prediction_history = deque(maxlen=10)  # Store last 10 predictions
-    threshold = 5  # Display prediction if it appears this many times consecutively
+    prediction_history = deque(maxlen=20)  # Store last 20 predictions
+    threshold = 10  # Display prediction if it appears this many times consecutively
+
+    sentence = []
 
     while True:
         ret, frame = cap.read()
@@ -106,6 +109,7 @@ def main():
         if predicted_character:
             prediction_history.append(predicted_character)
             most_common_prediction = max(set(prediction_history), key=prediction_history.count)
+            
 
             # Display the most common prediction only if it has appeared frequently enough
             if prediction_history.count(most_common_prediction) >= threshold:
