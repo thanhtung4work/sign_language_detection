@@ -21,7 +21,7 @@ mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
 hands = mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.8)
 
-labels_dict = {0: 'A', 1: 'I', 2: 'U', 3: 'E', 4: 'O'}
+labels_dict = {0: 'A', 1: 'I', 2: 'U', 3: 'E', 4: 'O', 5: 'KA', 6: 'KI', 7: 'KU', 8: 'KE', 9: 'KO'}
 
 def decode_base64_image(base64_string):
     """Decodes a base64 string and converts it into an OpenCV image."""
@@ -32,10 +32,11 @@ def decode_base64_image(base64_string):
 
 
 def process_frame(frame):
-    """Process the image frame and predict hand gestures."""
+    """Process the image frame and predict hand gestures. Also return landmarks."""
     data_aux = []
     x_ = []
     y_ = []
+    hand_landmarks_list = []
 
     H, W, _ = frame.shape
     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -43,11 +44,15 @@ def process_frame(frame):
     results = hands.process(frame_rgb)
     if results.multi_hand_landmarks:
         for hand_landmarks in results.multi_hand_landmarks:
+            hand_points = []
             for i in range(len(hand_landmarks.landmark)):
                 x = hand_landmarks.landmark[i].x
                 y = hand_landmarks.landmark[i].y
                 x_.append(x)
                 y_.append(y)
+                hand_points.append({'x': x, 'y': y})  # Collect x, y coordinates for frontend
+
+            hand_landmarks_list.append(hand_points)
 
             for i in range(len(hand_landmarks.landmark)):
                 data_aux.append(hand_landmarks.landmark[i].x - min(x_))
@@ -56,9 +61,9 @@ def process_frame(frame):
         if len(data_aux) == 42:  # Ensure correct number of landmarks
             prediction = model.predict([np.asarray(data_aux)])
             predicted_character = labels_dict[int(prediction[0])]
-            return predicted_character
+            return predicted_character, hand_landmarks_list
 
-    return None
+    return None, []
 
 
 @bp.route('/', methods=['GET', 'POST'])
@@ -72,10 +77,10 @@ def predict():
     # Convert base64 image to OpenCV image
     frame = decode_base64_image(image_data)
 
-    # Process the frame to get the hand gesture prediction
-    predicted_character = process_frame(frame)
+    # Process the frame to get the hand gesture prediction and landmarks
+    predicted_character, hand_landmarks_list = process_frame(frame)
 
     if predicted_character:
-        return jsonify({'prediction': predicted_character})
+        return jsonify({'prediction': predicted_character, 'landmarks': hand_landmarks_list})
     else:
-        return jsonify({'prediction': 'No hand detected'})
+        return jsonify({'prediction': 'No hand detected', 'landmarks': []})
