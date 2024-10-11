@@ -1,4 +1,5 @@
 from collections import deque
+import json
 
 import pickle
 import cv2
@@ -71,7 +72,7 @@ def process_frame(frame, hands, model, labels_dict):
 
             if len(data_aux) == 42:  # Ensure correct number of landmarks
                 prediction = model.predict([np.asarray(data_aux)])
-                predicted_character = labels_dict[int(prediction[0])]
+                predicted_character = labels_dict[str(prediction[0])]
 
                 # Draw the rectangle and prediction on the frame
                 cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 0), 4)
@@ -85,7 +86,9 @@ def main():
     model_path = './outputs/model.pickle'
     model = load_model(model_path)
 
-    labels_dict = {0: 'A', 1: 'I', 2: 'U', 3: 'E', 4: 'O', 5: 'KA', 6: 'KI', 7: 'KU', 8: 'KE', 9: 'KO'}
+    labels_dict = {}
+    with open('labels.json', 'r') as file:
+        labels_dict = json.load(file)
     
     cap = cv2.VideoCapture(0)
 
@@ -97,6 +100,7 @@ def main():
     threshold = 10  # Display prediction if it appears this many times consecutively
 
     sentence = []
+    last_appended_char = None
 
     while True:
         ret, frame = cap.read()
@@ -115,6 +119,13 @@ def main():
             if prediction_history.count(most_common_prediction) >= threshold:
                 cv2.putText(processed_frame, most_common_prediction, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 255, 0), 3, cv2.LINE_AA)
 
+                cv2.putText(processed_frame, ''.join(sentence), (50, 150), cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 255, 0), 3, cv2.LINE_AA)
+
+                # Only append to the sentence if the prediction is different from the last appended character
+                if most_common_prediction != last_appended_char:
+                    sentence.append(most_common_prediction)
+                    last_appended_char = most_common_prediction  # Update the last appended character
+
         # Display the frame
         cv2.imshow('Hand Gesture Recognition', processed_frame)
 
@@ -124,6 +135,9 @@ def main():
 
     cap.release()
     cv2.destroyAllWindows()
+
+    # Print the final sentence after exiting
+    print("Final Sentence:", ''.join(sentence))
 
 if __name__ == '__main__':
     main()

@@ -166,3 +166,6 @@ data/
 
 # Picklefiles
 *.pickle
+
+# Label file
+labels.json

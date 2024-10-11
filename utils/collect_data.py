@@ -1,6 +1,8 @@
-import os
-import cv2
 import argparse
+import json
+import os
+
+import cv2
 
 def create_directory(directory):
     """Create a directory if it does not exist.
@@ -63,6 +65,17 @@ def main(data_dir, number_of_classes, dataset_size):
 
     cap.release()
     cv2.destroyAllWindows()
+
+    vocab = {}
+    for i in range(number_of_classes):
+        label = input(f"Label for class {i}: ")
+        vocab[i] = label
+    
+    print(vocab)
+
+    with open("labels.json", "w") as outfile:
+        json.dump(vocab, outfile)
+
 
 if __name__ == '__main__':
     # Parse command-line arguments

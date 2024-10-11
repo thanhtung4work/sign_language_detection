@@ -24,7 +24,7 @@ def load_data(data_path):
     labels = np.asarray(data_dict['labels'])
     return data, labels
 
-def train_model(x_train, y_train):
+def train_model(x_train, y_train, num_tree):
     """Train a Random Forest classifier.
 
     Args:
@@ -34,7 +34,7 @@ def train_model(x_train, y_train):
     Returns:
         RandomForestClassifier: The trained model.
     """
-    model = RandomForestClassifier(n_estimators=200)
+    model = RandomForestClassifier(n_estimators=num_tree)
     model.fit(x_train, y_train)
     return model
 
@@ -66,7 +66,7 @@ def save_model(model, output_file):
     with open(output_path, 'wb') as f:
         pickle.dump({'model': model}, f)
 
-def main(data_path, output_file, test_size):
+def main(data_path, output_file, test_size, num_tree):
     """Main function to load data, train a model, evaluate, and save the model.
 
     Args:
@@ -82,7 +82,7 @@ def main(data_path, output_file, test_size):
     )
 
     # Train the model
-    model = train_model(x_train, y_train)
+    model = train_model(x_train, y_train, num_tree)
 
     # Evaluate the model
     accuracy = evaluate_model(model, x_test, y_test)
@@ -97,8 +97,9 @@ if __name__ == '__main__':
     parser.add_argument('--data_path', type=str, default='./outputs/data.pickle', help='Path to the input data pickle file.')
     parser.add_argument('--output_file', type=str, default='model.pickle', help='Path to save the trained model.')
     parser.add_argument('--test_size', type=float, default=0.2, help='Proportion of data to use for testing (default: 0.2).')
+    parser.add_argument('--num_tree', type=int, default=100, help='Number of tree in the forest.')
 
     args = parser.parse_args()
 
     # Run the main function with parsed arguments
-    main(args.data_path, args.output_file, args.test_size)
+    main(args.data_path, args.output_file, args.test_size, args.num_tree)

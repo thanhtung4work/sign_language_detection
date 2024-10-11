@@ -1,6 +1,7 @@
 import base64
 import functools
 from io import BytesIO
+import json
 
 import cv2
 from flask import (
@@ -22,6 +23,8 @@ mp_drawing = mp.solutions.drawing_utils
 hands = mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.8)
 
 labels_dict = {0: 'A', 1: 'I', 2: 'U', 3: 'E', 4: 'O', 5: 'KA', 6: 'KI', 7: 'KU', 8: 'KE', 9: 'KO'}
+with open('labels.json', 'r') as file:
+    labels_dict = json.load(file)
 
 def decode_base64_image(base64_string):
     """Decodes a base64 string and converts it into an OpenCV image."""
@@ -60,7 +63,7 @@ def process_frame(frame):
 
         if len(data_aux) == 42:  # Ensure correct number of landmarks
             prediction = model.predict([np.asarray(data_aux)])
-            predicted_character = labels_dict[int(prediction[0])]
+            predicted_character = labels_dict[str(prediction[0])]
             return predicted_character, hand_landmarks_list
 
     return None, []
