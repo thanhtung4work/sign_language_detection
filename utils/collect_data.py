@@ -73,7 +73,7 @@ def main(data_dir, number_of_classes, dataset_size):
     
     print(vocab)
 
-    with open("labels.json", "w") as outfile:
+    with open("/data/labels.json", "w") as outfile:
         json.dump(vocab, outfile)
 
 

@@ -7,10 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <video id="video" width="640" height="480" autoplay></video>
-    <canvas id="canvas" width="640" height="480"></canvas>
-    <div id="prediction"></div>
-
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    {% block content %}
+    {% endblock %}
 </html>
 </body>

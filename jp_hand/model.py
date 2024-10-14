@@ -23,8 +23,6 @@ mp_drawing = mp.solutions.drawing_utils
 hands = mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.8)
 
 labels_dict = {0: 'A', 1: 'I', 2: 'U', 3: 'E', 4: 'O', 5: 'KA', 6: 'KI', 7: 'KU', 8: 'KE', 9: 'KO'}
-with open('labels.json', 'r') as file:
-    labels_dict = json.load(file)
 
 def decode_base64_image(base64_string):
     """Decodes a base64 string and converts it into an OpenCV image."""
@@ -72,7 +70,7 @@ def process_frame(frame):
 @bp.route('/', methods=['GET', 'POST'])
 def predict():
     if request.method == 'GET':
-        return render_template('base.html')
+        return render_template('predict/index.html')
     
     data = request.json
     image_data = data['image']

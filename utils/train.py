@@ -18,8 +18,6 @@ def load_data(data_path):
     """
     with open(data_path, 'rb') as f:
         data_dict = pickle.load(f)
-    for data in data_dict['data']:
-        print(len(data))
     data = np.asarray(data_dict['data'])
     labels = np.asarray(data_dict['labels'])
     return data, labels

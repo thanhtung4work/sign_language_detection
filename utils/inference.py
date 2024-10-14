@@ -87,7 +87,7 @@ def main():
     model = load_model(model_path)
 
     labels_dict = {}
-    with open('labels.json', 'r') as file:
+    with open('data/labels.json', 'r') as file:
         labels_dict = json.load(file)
     
     cap = cv2.VideoCapture(0)

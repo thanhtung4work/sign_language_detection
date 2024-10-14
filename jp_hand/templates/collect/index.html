@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div>
+    <h1>Collect Training Images for Gesture Recognition</h1>
+
+    <label for="className">Class Name:</label>
+    <input type="text" id="className" placeholder="Enter class name" required>
+    <label for="numImages">Number of Images:</label>
+    <input type="number" id="numImages" min="1" required>
+    <button id="addClassButton">Add Class</button>
+
+    <div id="classList">
+        <h2>Classes to Collect:</h2>
+        <ul id="classes"></ul>
+    </div>
+
+    <button id="startButton" disabled>Start Collecting Images</button>
+    <button id="nextClassButton" disabled>Next Class</button>
+
+    <div>
+        <video id="cameraFeed" autoplay></video>
+    </div>
+    <p id="progress">Waiting for collection...</p>
+</div>
+
+<script>
+    const video = document.getElementById('cameraFeed');
+    const addClassButton = document.getElementById('addClassButton');
+    const startButton = document.getElementById('startButton');
+    const nextClassButton = document.getElementById('nextClassButton');
+    const classList = document.getElementById('classes');
+    const progress = document.getElementById('progress');
+    
+    let classes = [];  // Store class objects {name, numImages, collected}
+    let currentClassIndex = 0;
+
+    // Start camera feed
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => video.srcObject = stream)
+        .catch(err => console.error('Error accessing camera:', err));
+
+    addClassButton.addEventListener('click', () => {
+        const className = document.getElementById('className').value;
+        const numImages = parseInt(document.getElementById('numImages').value);
+
+        if (!className || numImages <= 0) {
+            alert('Please enter a valid class name and number of images.');
+            return;
+        }
+
+        // Add the class to the list
+        classes.push({ name: className, numImages, collected: 0 });
+        updateClassList();
+        document.getElementById('className').value = '';
+        document.getElementById('numImages').value = '';
+
+        startButton.disabled = false;
+    });
+
+    function updateClassList() {
+        classList.innerHTML = '<h2>Classes to Collect:</h2>';
+        const ul = document.createElement('ul');
+        classes.forEach((cls, index) => {
+            const li = document.createElement('li');
+            li.textContent = `${cls.name}: ${cls.collected} / ${cls.numImages} images`;
+            ul.appendChild(li);
+        });
+        classList.appendChild(ul);
+    }
+
+    startButton.addEventListener('click', () => {
+        if (classes.length === 0) {
+            alert('Please add at least one class.');
+            return;
+        }
+        collectImages();  // Start collecting images for the first class
+        nextClassButton.disabled = false;
+    });
+
+    nextClassButton.addEventListener('click', () => {
+        if (currentClassIndex < classes.length - 1) {
+            currentClassIndex++;
+            progress.textContent = `Collecting for ${classes[currentClassIndex].name}`;
+            collectImages();
+        } else {
+            alert('All classes have been collected!');
+            nextClassButton.disabled = true;
+        }
+    });
+
+    function collectImages() {
+        const currentClass = classes[currentClassIndex];
+
+        if (currentClass.collected >= currentClass.numImages) {
+            alert(`Collection complete for ${currentClass.name}. Move to the next class.`);
+            return;
+        }
+
+        // Capture current frame and send to backend
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        const imageData = canvas.toDataURL('image/jpeg');
+
+        fetch('/collect', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                image: imageData,
+                className: currentClass.name,
+                index: currentClass.collected
+            })
+        })
+        .then(() => {
+            currentClass.collected++;
+            progress.textContent = `Collecting for ${currentClass.name}: ${currentClass.collected} / ${currentClass.numImages}`;
+            updateClassList();
+
+            if (currentClass.collected < currentClass.numImages) {
+                setTimeout(collectImages, 500);  // Continue collecting
+            }
+        })
+        .catch(err => console.error('Upload error:', err));
+    }
+</script>
+{% endblock %}
