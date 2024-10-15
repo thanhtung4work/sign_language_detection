@@ -2,6 +2,7 @@ import base64
 import functools
 from io import BytesIO
 import json
+import os
 
 import cv2
 from flask import (
@@ -14,6 +15,12 @@ from PIL import Image
 
 bp = Blueprint('model', __name__, url_prefix='/')
 
+# Base directory to store images
+BASE_IMAGE_PATH = './user_data'
+
+
+os.makedirs(BASE_IMAGE_PATH, exist_ok=True)
+
 # Load model and mediapipe configuration
 model_dict = pickle.load(open('./outputs/model.pickle', 'rb'))
 model = model_dict['model']
@@ -22,7 +29,9 @@ mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
 hands = mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.8)
 
-labels_dict = {0: 'A', 1: 'I', 2: 'U', 3: 'E', 4: 'O', 5: 'KA', 6: 'KI', 7: 'KU', 8: 'KE', 9: 'KO'}
+labels_dict = {}
+with open('data/labels.json', 'r') as file:
+    labels_dict = json.load(file)
 
 def decode_base64_image(base64_string):
     """Decodes a base64 string and converts it into an OpenCV image."""
@@ -31,6 +40,12 @@ def decode_base64_image(base64_string):
     img = np.array(img)
     return cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
 
+DATA_DIR = './data'
+
+def create_directory(directory):
+    """Create a directory if it does not exist."""
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
 def process_frame(frame):
     """Process the image frame and predict hand gestures. Also return landmarks."""
@@ -85,3 +100,42 @@ def predict():
         return jsonify({'prediction': predicted_character, 'landmarks': hand_landmarks_list})
     else:
         return jsonify({'prediction': 'No hand detected', 'landmarks': []})
+    
+
+@bp.route('/collect', methods=['GET'])
+def collect():
+    if request.method == 'GET':
+        return render_template('collect/index.html')
+
+@bp.route('/start-collection', methods=['POST'])
+def start_collection():
+    """Create directories for the specified class."""
+    class_id = request.json['class_id']
+    class_dir = os.path.join(DATA_DIR, str(class_id))
+    create_directory(class_dir)
+    return jsonify({'message': f'Directory created for class {class_id}'})
+
+@bp.route('/upload-image', methods=['POST'])
+def upload_image():
+    """Save captured images to the specified class directory."""
+    data = request.json
+    class_id = data['class_id']
+    img_index = data['img_index']
+    img_data = data['image'].split(',')[1]  # Remove data:image/jpeg;base64 prefix
+    class_dir = os.path.join(DATA_DIR, str(class_id))
+
+    # Decode the image from base64 and save it
+    image_bytes = base64.b64decode(img_data)
+    img_path = os.path.join(class_dir, f'{img_index}.jpg')
+    with open(img_path, 'wb') as f:
+        f.write(image_bytes)
+
+    return jsonify({'message': f'Image {img_index} saved to class {class_id}'})
+
+@bp.route('/save-labels', methods=['POST'])
+def save_labels():
+    """Save class labels to a JSON file."""
+    labels = request.json['labels']
+    with open(os.path.join(DATA_DIR, 'labels.json'), 'w') as f:
+        json.dump(labels, f)
+    return jsonify({'message': 'Labels saved to labels.json'})

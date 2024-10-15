@@ -24,8 +24,7 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-    from . import model, data_collector
+    from . import model
     app.register_blueprint(model.bp)
-    app.register_blueprint(data_collector.bp)
 
     return app

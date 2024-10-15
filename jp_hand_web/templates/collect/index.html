@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div>
+    <h1>Collect Data for Multiple Classes</h1>
+
+    <div>
+        <label for="numClasses">Number of Classes:</label>
+        <input type="number" id="numClasses" min="1" required>
+        <label for="datasetSize">Images per Class:</label>
+        <input type="number" id="datasetSize" min="1" required>
+        <button onclick="startCollection()">Start Collection</button>
+    </div>
+
+    <div id="classForm" style="display:none;">
+        <h2>Class <span id="currentClass"></span> / <span id="totalClasses"></span></h2>
+        <video id="cameraFeed" autoplay></video>
+        <button onclick="captureImage()">Capture Image</button>
+        <p>Captured <span id="imgCount">0</span> / <span id="imgTotal"></span> images</p>
+        <button onclick="nextClass()">Next Class</button>
+    </div>
+</div>
+
+<script>
+let currentClass = 0;
+let imgCount = 0;
+let totalClasses = 0;
+let datasetSize = 0;
+let labels = {};
+
+const video = document.getElementById('cameraFeed');
+const classForm = document.getElementById('classForm');
+const currentClassElem = document.getElementById('currentClass');
+const totalClassesElem = document.getElementById('totalClasses');
+const imgCountElem = document.getElementById('imgCount');
+const imgTotalElem = document.getElementById('imgTotal');
+
+// Start the camera feed
+navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => video.srcObject = stream)
+    .catch(err => console.error('Error accessing camera:', err));
+
+function startCollection() {
+    totalClasses = parseInt(document.getElementById('numClasses').value);
+    datasetSize = parseInt(document.getElementById('datasetSize').value);
+
+    if (isNaN(totalClasses) || isNaN(datasetSize) || totalClasses <= 0 || datasetSize <= 0) {
+        alert('Please enter valid numbers for classes and dataset size.');
+        return;
+    }
+
+    classForm.style.display = 'block';
+    currentClassElem.textContent = currentClass + 1;
+    totalClassesElem.textContent = totalClasses;
+    imgTotalElem.textContent = datasetSize;
+
+    startClassCollection();
+}
+
+function startClassCollection() {
+    fetch('/start-collection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ class_id: currentClass })
+    });
+}
+
+function captureImage() {
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+
+    const imageData = canvas.toDataURL('image/jpeg');
+
+    fetch('/upload-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            class_id: currentClass,
+            img_index: imgCount,
+            image: imageData
+        })
+    }).then(() => {
+        imgCount++;
+        imgCountElem.textContent = imgCount;
+
+        if (imgCount >= datasetSize) {
+            alert(`Class ${currentClass + 1} completed. Move to the next class.`);
+        }
+    });
+}
+
+function nextClass() {
+    const label = prompt(`Enter label for class ${currentClass + 1}:`);
+    labels[currentClass] = label;
+
+    if (currentClass < totalClasses - 1) {
+        currentClass++;
+        imgCount = 0;
+        imgCountElem.textContent = imgCount;
+        currentClassElem.textContent = currentClass + 1;
+        startClassCollection();
+    } else {
+        fetch('/save-labels', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ labels })
+        }).then(() => alert('All classes completed! Labels saved.'));
+    }
+}
+
+</script>
+{% endblock %}
