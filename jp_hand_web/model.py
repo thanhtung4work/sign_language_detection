@@ -220,7 +220,7 @@ def start_preprocessing():
     with open(output_path, 'wb') as f:
         pickle.dump({'data': data, 'labels': labels}, f)
     
-    return f"Data preprocessing complete. Processed data saved to {output_file}."
+    return jsonify({"message": f"Data preprocessing complete. Processed data saved to {output_file}."})
 
 
 @bp.route("/start-training", methods=['POST'])
@@ -304,4 +304,4 @@ def start_training():
     # Save the model
     save_model(model, output_file)
 
-    return f'{accuracy * 100:.2f}% of samples were classified correctly!'
+    return jsonify({"message": f'{accuracy * 100:.2f}% of samples were classified correctly!'})
