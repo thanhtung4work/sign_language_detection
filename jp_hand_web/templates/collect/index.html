@@ -49,12 +49,25 @@ function startCollection() {
         return;
     }
 
-    classForm.style.display = 'block';
-    currentClassElem.textContent = currentClass + 1;
-    totalClassesElem.textContent = totalClasses;
-    imgTotalElem.textContent = datasetSize;
+    // Clear old data before starting a new collection
+    fetch('/clear-data', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                alert(data.message);  // Notify user that old data is cleared
 
-    startClassCollection();
+                // Display the form and start the collection process
+                classForm.style.display = 'block';
+                currentClassElem.textContent = currentClass + 1;
+                totalClassesElem.textContent = totalClasses;
+                imgTotalElem.textContent = datasetSize;
+
+                startClassCollection();
+            } else if (data.error) {
+                alert(`Error clearing data: ${data.error}`);
+            }
+        })
+        .catch(err => console.error('Error:', err));
 }
 
 function startClassCollection() {
@@ -106,8 +119,34 @@ function nextClass() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ labels })
-        }).then(() => alert('All classes completed! Labels saved.'));
+        }).then(() => {
+            alert('All classes completed! Labels saved.')
+            startPreprocessing()
+        });
     }
+}
+
+function startPreprocessing() {
+    fetch('/start-preprocessing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+    })
+    .then(response => response.json())
+    .then((data) => {
+        alert(data)
+        startTraining()
+    })
+}
+
+function startTraining() {
+    fetch('/start-training', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ labels })
+    })
+    .then(() => {
+        alert('training complete')
+    })
 }
 
 </script>
