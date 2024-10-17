@@ -90,6 +90,9 @@ def process_frame(frame):
 @bp.route('/', methods=['GET', 'POST'])
 def predict():
     if request.method == 'GET':
+        # Load model and mediapipe configuration
+        model_dict = pickle.load(open('./outputs/model.pickle', 'rb'))
+        model = model_dict['model']
         return render_template('predict/index.html')
     
     data = request.json
