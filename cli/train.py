@@ -1,68 +1,9 @@
 import argparse
 import os
 
-import pickle
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
-import numpy as np
 
-def load_data(data_path):
-    """Load dataset from a pickle file.
-
-    Args:
-        data_path (str): Path to the pickle file containing the data and labels.
-
-    Returns:
-        tuple: A tuple containing data and labels as numpy arrays.
-    """
-    with open(data_path, 'rb') as f:
-        data_dict = pickle.load(f)
-    data = np.asarray(data_dict['data'])
-    labels = np.asarray(data_dict['labels'])
-    return data, labels
-
-def train_model(x_train, y_train, num_tree):
-    """Train a Random Forest classifier.
-
-    Args:
-        x_train (numpy.ndarray): Training data.
-        y_train (numpy.ndarray): Training labels.
-
-    Returns:
-        RandomForestClassifier: The trained model.
-    """
-    model = RandomForestClassifier(n_estimators=num_tree)
-    model.fit(x_train, y_train)
-    return model
-
-def evaluate_model(model, x_test, y_test):
-    """Evaluate the trained model using accuracy score.
-
-    Args:
-        model (RandomForestClassifier): The trained model.
-        x_test (numpy.ndarray): Test data.
-        y_test (numpy.ndarray): Test labels.
-
-    Returns:
-        float: The accuracy score of the model on the test data.
-    """
-    y_predict = model.predict(x_test)
-    score = accuracy_score(y_predict, y_test)
-    return score
-
-def save_model(model, output_file):
-    """Save the trained model to a pickle file.
-
-    Args:
-        model (RandomForestClassifier): The trained model.
-        output_file (str): Path to save the model pickle file.
-    """
-    if not os.path.exists("./outputs"):
-        os.mkdir("outputs")
-    output_path = os.path.join("outputs", output_file)
-    with open(output_path, 'wb') as f:
-        pickle.dump({'model': model}, f)
+from utils import train_model, evaluate_model, load_data, save_model
 
 def main(data_path, output_file, test_size, num_tree):
     """Main function to load data, train a model, evaluate, and save the model.

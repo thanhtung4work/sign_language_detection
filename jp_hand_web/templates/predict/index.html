@@ -1,9 +1,13 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<video id="video" width="640" height="480" autoplay></video>
-<canvas id="canvas" width="640" height="480"></canvas>
-<div id="prediction"></div>
+<div class="container-fluid">
+    <div class="text-center">
+        <canvas id="canvas" width="640" height="480" class="rounded"></canvas>
+    </div>
+    <div id="prediction" class="text-center"></div>
+    <video width="640" height="480" class="rounded" id="video" autoplay></video>
+</div>
 
 <script defer>
     const video = document.getElementById('video');

@@ -1,23 +1,37 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div>
+<div class="container-fluid">
     <h1>Collect Data for Multiple Classes</h1>
 
     <div>
-        <label for="numClasses">Number of Classes:</label>
-        <input type="number" id="numClasses" min="1" required>
-        <label for="datasetSize">Images per Class:</label>
-        <input type="number" id="datasetSize" min="1" required>
-        <button onclick="startCollection()">Start Collection</button>
+        <div class="mb-3">
+            <label for="numClasses" class="form-label">Number of Classes:</label>
+            <input type="number" id="numClasses" min="1" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="datasetSize" class="form-label">Images per Class:</label>
+            <input type="number" id="datasetSize" min="1" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <button onclick="startCollection()" class="btn btn-primary">Start Collection</button>
+        </div>
     </div>
 
     <div id="classForm" style="display:none;">
         <h2>Class <span id="currentClass"></span> / <span id="totalClasses"></span></h2>
-        <video id="cameraFeed" autoplay></video>
-        <button onclick="captureImage()">Capture Image</button>
-        <p>Captured <span id="imgCount">0</span> / <span id="imgTotal"></span> images</p>
-        <button onclick="nextClass()">Next Class</button>
+        <div class="text-center">
+            <video id="cameraFeed" class="rounded" autoplay></video>
+        </div>
+        <div>
+            <button onclick="captureImage()" class="btn-primary btn">Capture Image</button>
+        </div>
+        <div>
+            <p>Captured <span id="imgCount">0</span> / <span id="imgTotal"></span> images</p>
+        </div>
+        <div>
+            <button onclick="nextClass()" class="btn btn-success">Next Class</button>
+        </div>
     </div>
 </div>
 
