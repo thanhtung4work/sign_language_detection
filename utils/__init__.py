@@ -38,6 +38,20 @@ def load_data(data_path):
         return data, labels
 
 
+def load_model(model_path):
+    """Load the trained model from a pickle file.
+
+    Args:
+        model_path (str): Path to the model pickle file.
+
+    Returns:
+        object: The loaded model object.
+    """
+    with open(model_path, 'rb') as f:
+        model_dict = pickle.load(f)
+    return model_dict['model']
+
+
 def evaluate_model(model, x_test, y_test):
     """Evaluate the trained model using accuracy score.
 

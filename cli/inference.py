@@ -6,23 +6,12 @@ import cv2
 import mediapipe as mp
 import numpy as np
 
+from utils import load_model
+
 mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 
-
-def load_model(model_path):
-    """Load the trained model from a pickle file.
-
-    Args:
-        model_path (str): Path to the model pickle file.
-
-    Returns:
-        object: The loaded model object.
-    """
-    with open(model_path, 'rb') as f:
-        model_dict = pickle.load(f)
-    return model_dict['model']
 
 def process_frame(frame, hands, model, labels_dict):
     """Process a video frame to detect hand landmarks and predict the corresponding character.
