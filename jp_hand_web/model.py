@@ -21,12 +21,6 @@ from utils import train_model, process_images, evaluate_model, load_data, save_m
 
 bp = Blueprint('model', __name__, url_prefix='/')
 
-# Base directory to store images
-BASE_IMAGE_PATH = './user_data'
-
-
-os.makedirs(BASE_IMAGE_PATH, exist_ok=True)
-
 # Load model and mediapipe configuration
 model_dict = pickle.load(open('./outputs/model.pickle', 'rb'))
 model = model_dict['model']
@@ -37,8 +31,11 @@ mp_drawing = mp.solutions.drawing_utils
 hands = mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.8, max_num_hands=1)
 
 labels_dict = {}
-with open('data/labels.json', 'r') as file:
-    labels_dict = json.load(file)
+try:
+    with open('data/labels.json', 'r') as file:
+        labels_dict = json.load(file)
+except:
+    labels_dict = {}
 
 def decode_base64_image(base64_string):
     """Decodes a base64 string and converts it into an OpenCV image."""
