@@ -2,10 +2,14 @@
 
 {% block content %}
 <div class="container-fluid">
+    <div class="text-center mb-2">
+        <a href="/collect" class="btn btn-primary">Create your own data</a>
+    </div>
     <div class="text-center">
         <canvas id="canvas" width="640" height="480" class="rounded"></canvas>
     </div>
     <div id="prediction" class="text-center"></div>
+    <div id="sentence" class="text-center"></div>
     <video width="640" height="480" class="rounded" id="video" autoplay></video>
 </div>
 
@@ -14,6 +18,9 @@
     const canvas = document.getElementById('canvas');
     const context = canvas.getContext('2d');
     const predictionDiv = document.getElementById('prediction');
+    const sentenceDiv = document.getElementById('sentence')
+
+    let sentence = ''
 
     // Access webcam
     navigator.mediaDevices.getUserMedia({ video: true })
@@ -49,6 +56,11 @@
             .then(response => response.json())
             .then(data => {
                 predictionDiv.innerText = `Prediction: ${data.prediction}`;
+
+                if (data.sentence){
+                    sentence = data.sentence
+                }
+                sentenceDiv.innerText = `${sentence}`
 
                 // Draw the hand landmarks on the canvas
                 if (data.landmarks && data.landmarks.length > 0) {

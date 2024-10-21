@@ -11,11 +11,11 @@ This project implements a hand gesture recognition system using Flask for the ba
 ## Project Structure
 
 ```text
-|- jp_hands/
+|- jp_hand_web/
 |   |- __init__.py
 |   |- model.py
 |   |- templates/
-|- utils/
+|- cli/
 |-  |- collect_data.py
 |-  |- inference.py
 |-  |- preprocess.py
@@ -39,17 +39,17 @@ flask --app jp_hands run
 2. Collect data
 
 ```bash
-python utils/collect_data.py --data_dir "save image path goes here" --num_classes "num classes goes here" --dataset_size "dataset size goes here"
+python -m cli.collect_data --data_dir "save image path goes here" --num_classes "num classes goes here" --dataset_size "dataset size goes here"
 ```
 
 3. Preprocess data
 
 ```bash
-python utils/preprocessing.py
+python -m cli.preprocessing
 ```
 
 4. Train model
 
 ```bash
-python utils/train.py  --data_path "data_path goes here" --output_path "output path goes here" --test_size "test size goes here"
+python -m cli.train  --data_path "data_path goes here" --output_path "output path goes here" --test_size "test size goes here"
 ```

@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container-fluid">
+<div class="container">
     <h1>Collect Data for Multiple Classes</h1>
 
-    <div>
+    <div id="dataCollectForm">
         <div class="mb-3">
             <label for="numClasses" class="form-label">Number of Classes:</label>
             <input type="number" id="numClasses" min="1" class="form-control" required>
@@ -57,6 +57,8 @@ navigator.mediaDevices.getUserMedia({ video: true })
 function startCollection() {
     totalClasses = parseInt(document.getElementById('numClasses').value);
     datasetSize = parseInt(document.getElementById('datasetSize').value);
+
+    document.getElementById('dataCollectForm').style.display = 'none'
 
     if (isNaN(totalClasses) || isNaN(datasetSize) || totalClasses <= 0 || datasetSize <= 0) {
         alert('Please enter valid numbers for classes and dataset size.');
@@ -129,6 +131,7 @@ function nextClass() {
         currentClassElem.textContent = currentClass + 1;
         startClassCollection();
     } else {
+        classForm.style.display = 'none'
         fetch('/save-labels', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -147,7 +150,7 @@ function startPreprocessing() {
     })
     .then(response => response.json())
     .then((data) => {
-        alert(data)
+        alert(data['message'])
         startTraining()
     })
 }
@@ -160,6 +163,7 @@ function startTraining() {
     })
     .then(() => {
         alert('training complete')
+        window.location.href = '/'
     })
 }
 
